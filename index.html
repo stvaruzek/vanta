@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vanta Homepage</title>
+    <title>Homepage</title>
     <style>
         * {
             margin: 0;
@@ -26,10 +26,87 @@
             left: 0;
             z-index: -1;
         }
+
+        #weather-widget {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 20px;
+            padding: 16px 28px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            min-width: 260px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+            font-size: 15px;
+        }
+
+        #weather-widget .weather-icon {
+            font-size: 42px;
+            line-height: 1;
+        }
+
+        #weather-widget .weather-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        #weather-widget .weather-temp {
+            font-size: 32px;
+            font-weight: 600;
+            line-height: 1;
+        }
+
+        #weather-widget .weather-desc {
+            font-size: 13px;
+            text-transform: capitalize;
+            opacity: 0.9;
+        }
+
+        #weather-widget .weather-location {
+            font-size: 12px;
+            opacity: 0.75;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        #weather-widget .weather-details {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-size: 12px;
+            opacity: 0.85;
+            padding-left: 12px;
+            border-left: 1px solid rgba(255,255,255,0.3);
+        }
+
+        #weather-widget .weather-loading {
+            font-size: 14px;
+            opacity: 0.85;
+        }
+
+        #weather-widget .weather-error {
+            font-size: 13px;
+            opacity: 0.85;
+        }
     </style>
 </head>
 <body>
     <div id="vanta-waves"></div>
+
+    <!-- Weather Widget -->
+    <div id="weather-widget">
+        <div class="weather-loading">Fetching weather...</div>
+    </div>
 
     <!-- Vanta.js Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -50,6 +127,76 @@
             scale: 1.00,
             scaleMobile: 1.00
         });
+
+        // Weather Widget
+        const weatherIcons = {
+            '01d': '☀️', '01n': '🌙',
+            '02d': '⛅', '02n': '⛅',
+            '03d': '☁️', '03n': '☁️',
+            '04d': '☁️', '04n': '☁️',
+            '09d': '🌧️', '09n': '🌧️',
+            '10d': '🌦️', '10n': '🌦️',
+            '11d': '⛈️', '11n': '⛈️',
+            '13d': '❄️', '13n': '❄️',
+            '50d': '🌫️', '50n': '🌫️',
+        };
+
+        async function fetchWeather(lat, lon) {
+            const apiKey = '8b71117707867c0cdedcf0b9ba641be0';
+            const url = `https://api.openweathermap.org/data/2.5/weather?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}&units=metric&appid=${encodeURIComponent(apiKey)}`;
+            const res = await fetch(url);
+            if (!res.ok) throw new Error('Weather fetch failed');
+            return res.json();
+        }
+
+        function renderWeather(data) {
+            const icon = weatherIcons[data.weather[0].icon] || '🌡️';
+            const temp = Math.round(data.main.temp);
+            const feels = Math.round(data.main.feels_like);
+            const desc = data.weather[0].description;
+            const location = `${data.name}, ${data.sys.country}`;
+            const humidity = data.main.humidity;
+            const wind = Math.round(data.wind.speed * 3.6); // m/s to km/h
+
+            document.getElementById('weather-widget').innerHTML = `
+                <div class="weather-icon">${icon}</div>
+                <div class="weather-info">
+                    <div class="weather-temp">${temp}°C</div>
+                    <div class="weather-desc">${desc}</div>
+                    <div class="weather-location">📍 ${location}</div>
+                </div>
+                <div class="weather-details">
+                    <span>Feels like ${feels}°C</span>
+                    <span>💧 ${humidity}%</span>
+                    <span>💨 ${wind} km/h</span>
+                </div>
+            `;
+        }
+
+        function initWeather() {
+            if (!navigator.geolocation) {
+                document.getElementById('weather-widget').innerHTML =
+                    '<div class="weather-error">⚠️ Geolocation not supported</div>';
+                return;
+            }
+            navigator.geolocation.getCurrentPosition(
+                async (pos) => {
+                    try {
+                        const data = await fetchWeather(pos.coords.latitude, pos.coords.longitude);
+                        renderWeather(data);
+                    } catch {
+                        document.getElementById('weather-widget').innerHTML =
+                            '<div class="weather-error">⚠️ Could not load weather</div>';
+                    }
+                },
+                () => {
+                    document.getElementById('weather-widget').innerHTML =
+                        '<div class="weather-error">📍 Location access denied</div>';
+                }
+            );
+        }
+
+        initWeather();
     </script>
 </body>
 </html>
