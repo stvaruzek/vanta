@@ -108,6 +108,26 @@
             opacity: 0.85;
         }
 
+        #windy-toggle-btn {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 12px;
+            padding: 8px 18px;
+            color: #fff;
+            font-size: 13px;
+            font-family: inherit;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+            transition: background 0.2s;
+            align-self: flex-end;
+        }
+
+        #windy-toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
         #windy-widget {
             width: 650px;
             height: 400px;
@@ -115,6 +135,7 @@
             overflow: hidden;
             border: 1px solid rgba(255, 255, 255, 0.25);
             box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+            display: none;
         }
 
         #windy-widget iframe {
@@ -133,6 +154,7 @@
         <div id="weather-widget">
             <div class="weather-loading">Fetching weather...</div>
         </div>
+        <button id="windy-toggle-btn" onclick="toggleWindy()">🗺️ Show Map</button>
         <div id="windy-widget">
             <iframe id="windy-iframe" src="" allowfullscreen></iframe>
         </div>
@@ -204,7 +226,7 @@
         }
 
         function setWindyLocation(lat, lon) {
-            const zoom = 7;
+            const zoom = 11;
             const src = `https://embed.windy.com/embed2.html?lat=${lat}&lon=${lon}&detailLat=${lat}&detailLon=${lon}&zoom=${zoom}&level=surface&overlay=wind&product=ecmwf&menu=&message=&marker=true&calendar=now&pressure=&type=map&location=coordinates&detail=&metricWind=default&metricTemp=default&radarRange=-1`;
             document.getElementById('windy-iframe').src = src;
         }
@@ -234,6 +256,17 @@
                     setWindyLocation(48.8944, 18.0444); // fallback: Trencin, Slovakia
                 }
             );
+        }
+
+        let windyVisible = false;
+        let windySrcReady = false;
+
+        function toggleWindy() {
+            const widget = document.getElementById('windy-widget');
+            const btn = document.getElementById('windy-toggle-btn');
+            windyVisible = !windyVisible;
+            widget.style.display = windyVisible ? 'block' : 'none';
+            btn.textContent = windyVisible ? '🗺️ Hide Map' : '🗺️ Show Map';
         }
 
         initWeather();
