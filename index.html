@@ -154,7 +154,7 @@
         <div id="weather-widget">
             <div class="weather-loading">Fetching weather...</div>
         </div>
-        <button id="windy-toggle-btn" onclick="toggleWindy()">🗺️ Show Map</button>
+        <button id="windy-toggle-btn" onclick="toggleWindy()">🌬️ Show Wind</button>
         <div id="windy-widget">
             <iframe id="windy-iframe" src="" allowfullscreen></iframe>
         </div>
@@ -302,7 +302,7 @@
             const btn = document.getElementById('windy-toggle-btn');
             windyVisible = !windyVisible;
             widget.style.display = windyVisible ? 'block' : 'none';
-            btn.textContent = windyVisible ? '🗺️ Hide Map' : '🗺️ Show Map';
+            btn.textContent = windyVisible ? '🌬️ Hide Wind' : '🌬️ Show Wind';
         }
 
         initWeather();
