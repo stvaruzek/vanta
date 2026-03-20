@@ -113,6 +113,58 @@
             margin-top: 6px;
         }
 
+        #vanta-presets {
+            width: 100%;
+            min-width: 260px;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 12px;
+            box-shadow: 0 4px 24px var(--shadow-color);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        #vanta-presets .preset-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            opacity: 0.75;
+            text-align: center;
+        }
+
+        #vanta-presets .preset-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .vanta-preset-btn {
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            color: var(--text-color);
+            padding: 8px 10px;
+            font-size: 12px;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s;
+        }
+
+        .vanta-preset-btn:hover {
+            background: var(--button-hover);
+            transform: translateY(-1px);
+        }
+
+        .vanta-preset-btn.active {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.95);
+            font-weight: 600;
+        }
+
         #weather-widget {
             background: var(--card-bg);
             backdrop-filter: blur(12px);
@@ -224,6 +276,15 @@
     <!-- Widgets Container -->
     <div id="widgets-container">
         <button id="theme-toggle-btn" onclick="toggleTheme()">🌙 Dark Mode</button>
+        <div id="vanta-presets">
+            <div class="preset-title">Background Presets</div>
+            <div class="preset-buttons" id="preset-buttons">
+                <button class="vanta-preset-btn" data-preset="oceanic">Oceanic</button>
+                <button class="vanta-preset-btn" data-preset="storm">Storm</button>
+                <button class="vanta-preset-btn" data-preset="sunrise">Sunrise</button>
+                <button class="vanta-preset-btn" data-preset="deep">Deep Sea</button>
+            </div>
+        </div>
         <div id="time-widget">
             <div class="greeting" id="greeting-text">Hello</div>
             <div class="clock" id="clock-text">--:--:--</div>
@@ -243,23 +304,88 @@
     <script src="https://cdn.jsdelivr.net/npm/vanta@0.5.24/dist/vanta.waves.min.js"></script>
 
     <script>
-        // WAVES Effect - Full Screen
-        VANTA.WAVES({
-            el: '#vanta-waves',
-            mouseControls: true,
-            touchControls: true,
-            gyroControls: true,
-            mouseControls: true,
-            touchControls: true,
-            gyroControls: false,
-            minHeight: 200.00,
-            minWidth: 200.00,
-            scale: 1.00,
-            scaleMobile: 1.00
-        });
+        const THEME_KEY = 'homepage_theme';
+        const VANTA_PRESET_KEY = 'vanta_preset';
+        const VANTA_PRESETS = {
+            oceanic: {
+                color: 0x23556a,
+                shininess: 32,
+                waveHeight: 18,
+                waveSpeed: 0.8,
+                zoom: 0.92
+            },
+            storm: {
+                color: 0x141d2d,
+                shininess: 78,
+                waveHeight: 30,
+                waveSpeed: 1.25,
+                zoom: 0.95
+            },
+            sunrise: {
+                color: 0xd4793e,
+                shininess: 24,
+                waveHeight: 14,
+                waveSpeed: 0.65,
+                zoom: 0.9
+            },
+            deep: {
+                color: 0x071522,
+                shininess: 64,
+                waveHeight: 24,
+                waveSpeed: 1,
+                zoom: 1.02
+            }
+        };
+
+        let vantaEffect = null;
+
+        function getInitialPreset() {
+            const saved = localStorage.getItem(VANTA_PRESET_KEY);
+            return VANTA_PRESETS[saved] ? saved : 'oceanic';
+        }
+
+        function updatePresetButtons(activePreset) {
+            document.querySelectorAll('.vanta-preset-btn').forEach((btn) => {
+                btn.classList.toggle('active', btn.dataset.preset === activePreset);
+            });
+        }
+
+        function initVanta(presetName) {
+            const preset = VANTA_PRESETS[presetName] || VANTA_PRESETS.oceanic;
+            if (vantaEffect && typeof vantaEffect.destroy === 'function') {
+                vantaEffect.destroy();
+            }
+
+            vantaEffect = VANTA.WAVES({
+                el: '#vanta-waves',
+                mouseControls: true,
+                touchControls: true,
+                gyroControls: false,
+                minHeight: 200,
+                minWidth: 200,
+                scale: 1,
+                scaleMobile: 1,
+                ...preset
+            });
+
+            updatePresetButtons(presetName);
+        }
+
+        function setVantaPreset(presetName) {
+            if (!VANTA_PRESETS[presetName]) return;
+            localStorage.setItem(VANTA_PRESET_KEY, presetName);
+            initVanta(presetName);
+        }
+
+        function bindPresetControls() {
+            document.querySelectorAll('.vanta-preset-btn').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    setVantaPreset(btn.dataset.preset);
+                });
+            });
+        }
 
         // Weather Widget
-        const THEME_KEY = 'homepage_theme';
         const weatherIcons = {
             '01d': '☀️', '01n': '🌙',
             '02d': '⛅', '02n': '⛅',
@@ -432,6 +558,8 @@
             btn.textContent = windyVisible ? '🌬️ Hide Wind' : '🌬️ Show Wind';
         }
 
+        bindPresetControls();
+        initVanta(getInitialPreset());
         applyTheme(getInitialTheme());
         updateDateTimeGreeting();
         setInterval(updateDateTimeGreeting, 1000);
