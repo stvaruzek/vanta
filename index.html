@@ -41,6 +41,39 @@
             overflow-y: auto;
         }
 
+        #time-widget {
+            width: 100%;
+            min-width: 260px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 20px;
+            padding: 14px 20px;
+            color: #fff;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        #time-widget .greeting {
+            font-size: 13px;
+            opacity: 0.9;
+            margin-bottom: 4px;
+        }
+
+        #time-widget .clock {
+            font-size: 38px;
+            font-weight: 600;
+            line-height: 1;
+            letter-spacing: 0.5px;
+        }
+
+        #time-widget .date {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-top: 6px;
+        }
+
         #weather-widget {
             background: rgba(255, 255, 255, 0.15);
             backdrop-filter: blur(12px);
@@ -151,6 +184,11 @@
 
     <!-- Widgets Container -->
     <div id="widgets-container">
+        <div id="time-widget">
+            <div class="greeting" id="greeting-text">Hello</div>
+            <div class="clock" id="clock-text">--:--:--</div>
+            <div class="date" id="date-text">Loading date...</div>
+        </div>
         <div id="weather-widget">
             <div class="weather-loading">Fetching weather...</div>
         </div>
@@ -192,6 +230,33 @@
             '13d': '❄️', '13n': '❄️',
             '50d': '🌫️', '50n': '🌫️',
         };
+
+        function updateDateTimeGreeting() {
+            const now = new Date();
+            const hour = now.getHours();
+            let greeting = 'Good evening';
+
+            if (hour >= 5 && hour < 12) greeting = 'Good morning';
+            else if (hour >= 12 && hour < 18) greeting = 'Good afternoon';
+
+            const time = now.toLocaleTimeString('sk-SK', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+
+            const date = now.toLocaleDateString(undefined, {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+
+            document.getElementById('greeting-text').textContent = greeting;
+            document.getElementById('clock-text').textContent = time;
+            document.getElementById('date-text').textContent = date;
+        }
 
         async function fetchWeather(lat, lon) {
             const apiKey = '8b71117707867c0cdedcf0b9ba641be0';
@@ -305,6 +370,8 @@
             btn.textContent = windyVisible ? '🌬️ Hide Wind' : '🌬️ Show Wind';
         }
 
+        updateDateTimeGreeting();
+        setInterval(updateDateTimeGreeting, 1000);
         initWeather();
     </script>
 </body>
