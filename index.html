@@ -128,18 +128,50 @@
             gap: 8px;
         }
 
+        #vanta-presets .preset-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
         #vanta-presets .preset-title {
             font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 0.08em;
             opacity: 0.75;
-            text-align: center;
+        }
+
+        #preset-toggle-btn {
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            color: var(--text-color);
+            padding: 6px 10px;
+            font-size: 12px;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        #preset-toggle-btn:hover {
+            background: var(--button-hover);
         }
 
         #vanta-presets .preset-buttons {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+            display: none;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 8px;
+        }
+
+        #vanta-presets.expanded .preset-buttons {
+            display: grid;
+        }
+
+        @media (max-width: 700px) {
+            #vanta-presets .preset-buttons {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
         }
 
         .vanta-preset-btn {
@@ -277,12 +309,27 @@
     <div id="widgets-container">
         <button id="theme-toggle-btn" onclick="toggleTheme()">🌙 Dark Mode</button>
         <div id="vanta-presets">
-            <div class="preset-title">Background Presets</div>
+            <div class="preset-header">
+                <div class="preset-title">Background Presets</div>
+                <button id="preset-toggle-btn" onclick="togglePresetPanel()">Show</button>
+            </div>
             <div class="preset-buttons" id="preset-buttons">
                 <button class="vanta-preset-btn" data-preset="oceanic">Oceanic</button>
                 <button class="vanta-preset-btn" data-preset="storm">Storm</button>
                 <button class="vanta-preset-btn" data-preset="sunrise">Sunrise</button>
                 <button class="vanta-preset-btn" data-preset="deep">Deep Sea</button>
+                <button class="vanta-preset-btn" data-preset="birds">Birds</button>
+                <button class="vanta-preset-btn" data-preset="dots">Dots</button>
+                <button class="vanta-preset-btn" data-preset="globe">Globe</button>
+                <button class="vanta-preset-btn" data-preset="net">Net</button>
+                <button class="vanta-preset-btn" data-preset="rings">Rings</button>
+                <button class="vanta-preset-btn" data-preset="fog">Fog</button>
+                <button class="vanta-preset-btn" data-preset="clouds">Clouds</button>
+                <button class="vanta-preset-btn" data-preset="clouds2">Clouds2</button>
+                <button class="vanta-preset-btn" data-preset="halo">Halo</button>
+                <button class="vanta-preset-btn" data-preset="cells">Cells</button>
+                <button class="vanta-preset-btn" data-preset="topology">Topology</button>
+                <button class="vanta-preset-btn" data-preset="trunk">Trunk</button>
             </div>
         </div>
         <div id="time-widget">
@@ -301,6 +348,18 @@
 
     <!-- Vanta.js Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@0.5.24/dist/vanta.birds.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@0.5.24/dist/vanta.cells.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@0.5.24/dist/vanta.clouds.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@0.5.24/dist/vanta.clouds2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@0.5.24/dist/vanta.dots.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@0.5.24/dist/vanta.fog.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@0.5.24/dist/vanta.globe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@0.5.24/dist/vanta.halo.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@0.5.24/dist/vanta.net.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@0.5.24/dist/vanta.rings.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@0.5.24/dist/vanta.topology.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@0.5.24/dist/vanta.trunk.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vanta@0.5.24/dist/vanta.waves.min.js"></script>
 
     <script>
@@ -308,36 +367,174 @@
         const VANTA_PRESET_KEY = 'vanta_preset';
         const VANTA_PRESETS = {
             oceanic: {
-                color: 0x23556a,
-                shininess: 32,
-                waveHeight: 18,
-                waveSpeed: 0.8,
-                zoom: 0.92
+                effect: 'WAVES',
+                options: {
+                    color: 0x23556a,
+                    shininess: 32,
+                    waveHeight: 18,
+                    waveSpeed: 0.8,
+                    zoom: 0.92
+                }
             },
             storm: {
-                color: 0x141d2d,
-                shininess: 78,
-                waveHeight: 30,
-                waveSpeed: 1.25,
-                zoom: 0.95
+                effect: 'WAVES',
+                options: {
+                    color: 0x141d2d,
+                    shininess: 78,
+                    waveHeight: 30,
+                    waveSpeed: 1.25,
+                    zoom: 0.95
+                }
             },
             sunrise: {
-                color: 0xd4793e,
-                shininess: 24,
-                waveHeight: 14,
-                waveSpeed: 0.65,
-                zoom: 0.9
+                effect: 'WAVES',
+                options: {
+                    color: 0xd4793e,
+                    shininess: 24,
+                    waveHeight: 14,
+                    waveSpeed: 0.65,
+                    zoom: 0.9
+                }
             },
             deep: {
-                color: 0x071522,
-                shininess: 64,
-                waveHeight: 24,
-                waveSpeed: 1,
-                zoom: 1.02
+                effect: 'WAVES',
+                options: {
+                    color: 0x071522,
+                    shininess: 64,
+                    waveHeight: 24,
+                    waveSpeed: 1,
+                    zoom: 1.02
+                }
+            },
+            birds: {
+                effect: 'BIRDS',
+                options: {
+                    color1: 0x5ca8d6,
+                    color2: 0x0a2f57,
+                    birdSize: 1.3,
+                    wingSpan: 24,
+                    speedLimit: 4,
+                    separation: 40,
+                    alignment: 28,
+                    cohesion: 28
+                }
+            },
+            dots: {
+                effect: 'DOTS',
+                options: {
+                    color: 0x3f8abf,
+                    color2: 0xa8d2f2,
+                    backgroundColor: 0x0d1c2a,
+                    size: 3.2,
+                    spacing: 26,
+                    showLines: true
+                }
+            },
+            globe: {
+                effect: 'GLOBE',
+                options: {
+                    color: 0x75a6d8,
+                    color2: 0x1e4468,
+                    backgroundColor: 0x0a1b2b,
+                    size: 1,
+                    points: 12,
+                    maxDistance: 23,
+                    spacing: 18
+                }
+            },
+            net: {
+                effect: 'NET',
+                options: {
+                    color: 0x6aa7d8,
+                    backgroundColor: 0x081b2c,
+                    points: 11,
+                    maxDistance: 24,
+                    spacing: 18
+                }
+            },
+            rings: {
+                effect: 'RINGS',
+                options: {
+                    color: 0x6a8bc7,
+                    backgroundColor: 0x0a1728,
+                    maxDistance: 30,
+                    spacing: 22
+                }
+            },
+            fog: {
+                effect: 'FOG',
+                options: {
+                    highlightColor: 0x92b3d6,
+                    midtoneColor: 0x406684,
+                    lowlightColor: 0x122637,
+                    baseColor: 0x07121c,
+                    blurFactor: 0.5,
+                    speed: 1.2,
+                    zoom: 0.95
+                }
+            },
+            clouds: {
+                effect: 'CLOUDS',
+                options: {
+                    skyColor: 0x4f84aa,
+                    cloudColor: 0xe8f4ff,
+                    cloudShadowColor: 0x2a465f,
+                    sunColor: 0xf5d08a,
+                    sunGlareColor: 0xffe7bc,
+                    sunlightColor: 0xfff0cf,
+                    speed: 0.7
+                }
+            },
+            clouds2: {
+                effect: 'CLOUDS2',
+                options: {
+                    skyColor: 0x3f6e92,
+                    cloudColor: 0xdfeefe,
+                    speed: 0.55,
+                    texturePath: 'https://cdn.jsdelivr.net/npm/vanta@latest/src/gallery/noise.png'
+                }
+            },
+            halo: {
+                effect: 'HALO',
+                options: {
+                    baseColor: 0x6a94c6,
+                    backgroundColor: 0x0a1728,
+                    amplitudeFactor: 1.8,
+                    size: 1,
+                    xOffset: 0.1,
+                    yOffset: 0
+                }
+            },
+            cells: {
+                effect: 'CELLS',
+                options: {
+                    color1: 0x6ea4d6,
+                    color2: 0x0f2b46,
+                    size: 1.3,
+                    speed: 1,
+                    points: 12
+                }
+            },
+            topology: {
+                effect: 'TOPOLOGY',
+                options: {
+                    color: 0x6b9bcc,
+                    backgroundColor: 0x0a1826
+                }
+            },
+            trunk: {
+                effect: 'TRUNK',
+                options: {
+                    color: 0x6ea2d6,
+                    backgroundColor: 0x08182a,
+                    spacing: 4,
+                    chaos: 3
+                }
             }
         };
 
         let vantaEffect = null;
+    let presetPanelOpen = false;
 
         function getInitialPreset() {
             const saved = localStorage.getItem(VANTA_PRESET_KEY);
@@ -350,13 +547,25 @@
             });
         }
 
+        function togglePresetPanel(forceState) {
+            const panel = document.getElementById('vanta-presets');
+            const btn = document.getElementById('preset-toggle-btn');
+            const shouldOpen = typeof forceState === 'boolean' ? forceState : !presetPanelOpen;
+            presetPanelOpen = shouldOpen;
+            panel.classList.toggle('expanded', presetPanelOpen);
+            btn.textContent = presetPanelOpen ? 'Hide' : 'Show';
+        }
+
         function initVanta(presetName) {
             const preset = VANTA_PRESETS[presetName] || VANTA_PRESETS.oceanic;
             if (vantaEffect && typeof vantaEffect.destroy === 'function') {
                 vantaEffect.destroy();
             }
 
-            vantaEffect = VANTA.WAVES({
+            const effectName = preset.effect || 'WAVES';
+            const effectFactory = VANTA[effectName] || VANTA.WAVES;
+
+            vantaEffect = effectFactory({
                 el: '#vanta-waves',
                 mouseControls: true,
                 touchControls: true,
@@ -365,7 +574,7 @@
                 minWidth: 200,
                 scale: 1,
                 scaleMobile: 1,
-                ...preset
+                ...(preset.options || {})
             });
 
             updatePresetButtons(presetName);
@@ -375,6 +584,7 @@
             if (!VANTA_PRESETS[presetName]) return;
             localStorage.setItem(VANTA_PRESET_KEY, presetName);
             initVanta(presetName);
+            togglePresetPanel(false);
         }
 
         function bindPresetControls() {
@@ -559,6 +769,7 @@
         }
 
         bindPresetControls();
+        togglePresetPanel(false);
         initVanta(getInitialPreset());
         applyTheme(getInitialTheme());
         updateDateTimeGreeting();
