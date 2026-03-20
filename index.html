@@ -231,29 +231,65 @@
             document.getElementById('windy-iframe').src = src;
         }
 
+        const CACHE_KEY = 'weather_cache';
+        const CACHE_TTL = 60 * 60 * 1000; // 1 hour in ms
+
+        function getCachedWeather() {
+            try {
+                const raw = localStorage.getItem(CACHE_KEY);
+                if (!raw) return null;
+                const { data, lat, lon, timestamp } = JSON.parse(raw);
+                if (Date.now() - timestamp < CACHE_TTL) return { data, lat, lon };
+            } catch {}
+            return null;
+        }
+
+        function setCachedWeather(data, lat, lon) {
+            try {
+                localStorage.setItem(CACHE_KEY, JSON.stringify({ data, lat, lon, timestamp: Date.now() }));
+            } catch {}
+        }
+
         function initWeather() {
+            // Show cached data immediately if available
+            const cached = getCachedWeather();
+            if (cached) {
+                renderWeather(cached.data);
+                setWindyLocation(cached.lat, cached.lon);
+            }
+
             if (!navigator.geolocation) {
-                document.getElementById('weather-widget').innerHTML =
-                    '<div class="weather-error">⚠️ Geolocation not supported</div>';
-                setWindyLocation(48.8944, 18.0444); // fallback: Trencin, Slovakia
+                if (!cached) {
+                    document.getElementById('weather-widget').innerHTML =
+                        '<div class="weather-error">⚠️ Geolocation not supported</div>';
+                    setWindyLocation(48.8944, 18.0444); // fallback: Trencin, Slovakia
+                }
                 return;
             }
+
             navigator.geolocation.getCurrentPosition(
                 async (pos) => {
                     const { latitude: lat, longitude: lon } = pos.coords;
                     setWindyLocation(lat, lon);
+                    // Skip fetch if cache is still fresh
+                    if (cached) return;
                     try {
                         const data = await fetchWeather(lat, lon);
+                        setCachedWeather(data, lat, lon);
                         renderWeather(data);
                     } catch {
-                        document.getElementById('weather-widget').innerHTML =
-                            '<div class="weather-error">⚠️ Could not load weather</div>';
+                        if (!cached) {
+                            document.getElementById('weather-widget').innerHTML =
+                                '<div class="weather-error">⚠️ Could not load weather</div>';
+                        }
                     }
                 },
                 () => {
-                    document.getElementById('weather-widget').innerHTML =
-                        '<div class="weather-error">📍 Location access denied</div>';
-                    setWindyLocation(48.8944, 18.0444); // fallback: Trencin, Slovakia
+                    if (!cached) {
+                        document.getElementById('weather-widget').innerHTML =
+                            '<div class="weather-error">📍 Location access denied</div>';
+                        setWindyLocation(48.8944, 18.0444); // fallback: Trencin, Slovakia
+                    }
                 }
             );
         }
